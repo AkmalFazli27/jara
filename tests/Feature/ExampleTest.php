@@ -14,6 +14,7 @@ class ExampleTest extends TestCase
     {
         $response = $this->get('/login');
 
-        $response->assertStatus(200);
+        // "/" mengalihkan guest ke login (lihat routes/web.php `home`).
+        $response->assertRedirect(route('login'));
     }
 }
