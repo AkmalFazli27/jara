@@ -19,6 +19,45 @@ class User extends Authenticatable
     use HasFactory, Notifiable;
 
     /**
+     * Check if the user has admin role.
+     */
+    public function isAdmin(): bool
+    {
+        return $this->role === 'admin';
+    }
+
+    /**
+     * Check if the user has regular user role.
+     */
+    public function isUser(): bool
+    {
+        return $this->role === 'user';
+    }
+
+    /**
+     * Scope query to search users by name or email.
+     */
+    public function scopeSearch($query, ?string $term)
+    {
+        return $query->when($term, function ($q, $term) {
+            $q->where(function ($subQuery) use ($term) {
+                $subQuery->where('name', 'like', "%{$term}%")
+                    ->orWhere('email', 'like', "%{$term}%");
+            });
+        });
+    }
+
+    /**
+     * Scope query to filter users by role.
+     */
+    public function scopeRoleFilter($query, ?string $role)
+    {
+        return $query->when($role && in_array($role, ['admin', 'user'], true), function ($q) use ($role) {
+            $q->where('role', $role);
+        });
+    }
+
+    /**
      * Get the attributes that should be cast.
      *
      * @return array<string, string>

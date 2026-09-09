@@ -10,6 +10,18 @@
                 <h1 class="text-[2rem] font-bold text-slate-900 leading-tight mb-2">Welcome back</h1>
                 <p class="text-sm text-slate-500 mb-9">Sign in to your workspace to continue.</p>
 
+                @if (session('status'))
+                    <div class="p-4 mb-4 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200 text-sm font-medium">
+                        {{ session('status') }}
+                    </div>
+                @endif
+
+                @if (session('info'))
+                    <div class="p-4 mb-4 rounded-xl bg-blue-50 text-blue-700 border border-blue-200 text-sm font-medium">
+                        {{ session('info') }}
+                    </div>
+                @endif
+
                 <form method="POST" action="{{ route('login') }}" class="space-y-5">
                     @csrf
 

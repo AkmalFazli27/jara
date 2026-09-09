@@ -4,11 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Models\Task;
 use App\Models\TaskList;
+use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\View\View;
 
 class DashboardController extends Controller
 {
+    /**
+     * Display the user dashboard with statistics.
+     */
     public function __invoke(): View
     {
         $user = Auth::user();
@@ -55,6 +58,11 @@ class DashboardController extends Controller
             ],
             'overdueCount' => $overdue,
         ]);
+    }
+
+    public function index(): View
+    {
+        return $this->__invoke();
     }
 
     /** Id daftar yang boleh dibuka user: owner ATAU tercatat di list_members. */
