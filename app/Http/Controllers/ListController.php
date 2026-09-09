@@ -58,7 +58,7 @@ class ListController extends Controller
         $this->ensureAccess($list);
 
         $validated = $request->validate([
-            'search' => ['nullable', 'string', 'max' => 100],
+            'search' => ['nullable', 'string', 'max:100'],
             'priority' => ['nullable', 'in' => ['all', 'low', 'medium', 'high']],
             'sort' => ['nullable', 'in' => ['dueDate', 'priority', 'name']],
             'group' => ['nullable', 'in' => ['none', 'priority', 'status']],
@@ -118,7 +118,7 @@ class ListController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'name' => ['required', 'string', 'max' => 255],
+            'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
         ]);
 
@@ -141,7 +141,7 @@ class ListController extends Controller
         $this->ensureOwner($list);
 
         $validated = $request->validate([
-            'name' => ['required', 'string', 'max' => 255],
+            'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
         ]);
 

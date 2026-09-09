@@ -16,7 +16,7 @@ class TaskController extends Controller
         $this->ensureAccess($list);
 
         $validated = $request->validate([
-            'title' => ['required', 'string', 'max' => 255],
+            'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'priority' => ['nullable', 'in' => ['low', 'medium', 'high']],
             'deadline' => ['nullable', 'date'],
@@ -37,7 +37,7 @@ class TaskController extends Controller
         $this->ensureAccess($task->list);
 
         $validated = $request->validate([
-            'title' => ['required', 'string', 'max' => 255],
+            'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'priority' => ['nullable', 'in' => ['low', 'medium', 'high']],
             'deadline' => ['nullable', 'date'],
