@@ -56,5 +56,7 @@ Route::middleware('auth')->group(function (): void {
 
         // User Management (F-04 s.d F-06)
         Route::get('/users', [UserController::class, 'index'])->name('users.index');
+        Route::get('/users/create', [UserController::class, 'create'])->name('users.create');
+        Route::post('/users', [UserController::class, 'store'])->name('users.store');
     });
 });

@@ -54,12 +54,15 @@
                 <p class="text-slate-400 text-sm mt-1">Kelola dan pantau seluruh akun pengguna terdaftar.</p>
             </div>
 
-            <!-- Placeholders for F-05 Create User -->
+            <!-- F-05 Create User Button -->
             <div>
-                <button type="button" disabled
-                        class="px-4 py-2.5 rounded-xl bg-amber-600/50 text-amber-200 text-xs font-semibold cursor-not-allowed opacity-75">
-                    + Tambah Akun Baru (F-05)
-                </button>
+                <a href="{{ route('admin.users.create') }}"
+                   class="px-4 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-xs font-semibold transition-all shadow-md shadow-amber-600/20 flex items-center space-x-1.5">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                    </svg>
+                    <span>Tambah Akun Baru</span>
+                </a>
             </div>
         </div>
 
