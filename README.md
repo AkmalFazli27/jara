@@ -108,3 +108,20 @@ jara/
 ├── ERD.md                     # Kontrak skema relasi basis data
 └── README.md                  # Dokumentasi resmi proyek
 ```
+
+Note:
+## Akun Demo (untuk asisten praktikum)
+
+Tidak ada halaman registrasi mandiri — akun hanya dibuat oleh admin
+(F-05). Untuk login pertama setelah clone, gunakan salah satu akun
+yang dibuat oleh `database/seeders/DatabaseSeeder.php`:
+
+| Role  | Email              | Password    |
+| ----- | ------------------ | ----------- |
+| Admin | `admin@jara.local` | `Admin123!` |
+| User  | `user@jara.local`  | `User123!`  |
+| User  | `test@example.com` | `password`  |
+
+> Catatan: kredensial di atas hanya untuk pengembangan lokal.
+> Ganti password setelah login via halaman `/profile` dan jangan
+> pakai kredensial ini di production.
