@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\ListMember;
 use App\Models\TaskList;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -193,6 +194,46 @@ class ListController extends Controller
         ]);
 
         return back()->with('status', 'Anggota berhasil ditambahkan.');
+    }
+
+    /** Hapus anggota dari daftar (F-12, AC-01). Hanya owner; baris owner tak bisa dihapus. */
+    public function removeMember(Request $request, TaskList $list, User $user): RedirectResponse
+    {
+        $this->ensureOwner($list);
+
+        $membership = ListMember::where('list_id', $list->id)->where('user_id', $user->id)->first();
+
+        if ($membership === null) {
+            abort(404);
+        }
+
+        if ($membership->role === 'owner') {
+            return back()->withErrors(['member' => 'Keanggotaan pemilik tidak bisa dihapus. Hapus/arsipkan daftar untuk menutupnya.']);
+        }
+
+        $membership->delete();
+
+        return back()->with('status', 'Anggota berhasil dihapus dari daftar.');
+    }
+
+    /** Keluar dari daftar (F-12, AC-02). Owner ditolak sampai kepemilikan diselesaikan eksplisit. */
+    public function leave(Request $request, TaskList $list): RedirectResponse
+    {
+        $userId = (int) Auth::id();
+
+        $membership = ListMember::where('list_id', $list->id)->where('user_id', $userId)->first();
+
+        if ($membership === null) {
+            abort(403);
+        }
+
+        if ($membership->role === 'owner' || (int) $list->owner_id === $userId) {
+            return back()->withErrors(['member' => 'Pemilik tidak bisa keluar begitu saja. Alihkan kepemilikan atau hapus/arsipkan daftar terlebih dahulu.']);
+        }
+
+        $membership->delete();
+
+        return redirect()->route('lists.index')->with('status', 'Anda keluar dari daftar.');
     }
 
     public function update(Request $request, TaskList $list): RedirectResponse

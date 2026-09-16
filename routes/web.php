@@ -45,6 +45,8 @@ Route::middleware('auth')->group(function (): void {
         Route::delete('/lists/{list}', [ListController::class, 'destroy'])->name('lists.destroy');
         Route::patch('/lists/{list}/archive', [ListController::class, 'archive'])->name('lists.archive');
         Route::post('/lists/{list}/members', [ListController::class, 'invite'])->name('lists.members.store');
+        Route::delete('/lists/{list}/members/{user}', [ListController::class, 'removeMember'])->name('lists.members.destroy');
+        Route::post('/lists/{list}/leave', [ListController::class, 'leave'])->name('lists.leave');
 
         Route::post('/lists/{list}/tasks', [TaskController::class, 'store'])->name('tasks.store');
         Route::put('/tasks/{task}', [TaskController::class, 'update'])->name('tasks.update');
