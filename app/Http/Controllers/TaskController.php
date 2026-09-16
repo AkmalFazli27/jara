@@ -19,13 +19,13 @@ class TaskController extends Controller
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:2000'],
             'priority' => ['nullable', 'in:low,medium,high'],
-            'deadline' => ['nullable', 'date'],
+            'deadline' => ['nullable', 'date_format:Y-m-d'],
         ], [
             'title.required' => 'Judul tugas wajib diisi.',
             'title.max' => 'Judul tugas maksimal 255 karakter.',
             'description.max' => 'Deskripsi tugas maksimal 2000 karakter.',
             'priority.in' => 'Prioritas yang dipilih tidak valid.',
-            'deadline.date' => 'Format deadline tidak valid.',
+            'deadline.date_format' => 'Format deadline harus berupa tanggal yang valid.',
         ]);
 
         $list->tasks()->create([
@@ -42,21 +42,27 @@ class TaskController extends Controller
     {
         $this->ensureAccess($task->list);
 
-        $validated = $request->validate([
+        $validated = $request->validateWithBag('updateTask', [
             'title' => ['required', 'string', 'max:255'],
-            'description' => ['nullable', 'string'],
-            'priority' => ['nullable', 'in' => ['low', 'medium', 'high']],
-            'deadline' => ['nullable', 'date'],
+            'description' => ['nullable', 'string', 'max:2000'],
+            'priority' => ['nullable', 'in:low,medium,high'],
+            'deadline' => ['nullable', 'date_format:Y-m-d'],
+        ], [
+            'title.required' => 'Judul tugas wajib diisi.',
+            'title.max' => 'Judul tugas maksimal 255 karakter.',
+            'description.max' => 'Deskripsi tugas maksimal 2000 karakter.',
+            'priority.in' => 'Prioritas yang dipilih tidak valid.',
+            'deadline.date_format' => 'Format deadline harus berupa tanggal yang valid.',
         ]);
 
         $task->update([
             'title' => $validated['title'],
             'description' => $validated['description'] ?? null,
             'priority' => $validated['priority'] ?? $task->priority,
-            'deadline' => $validated['deadline'] ?? $task->deadline,
+            'deadline' => $validated['deadline'] ?? null,
         ]);
 
-        return back()->with('status', 'Task updated.');
+        return back()->with('status', 'Tugas berhasil diperbarui.');
     }
 
     /** Tandai selesai / belum (F-15): isi completed_at saat selesai. */
@@ -71,7 +77,7 @@ class TaskController extends Controller
             'completed_at' => $done ? now() : null,
         ]);
 
-        return back()->with('status', $done ? 'Task completed.' : 'Task reopened.');
+        return back()->with('status', $done ? 'Tugas ditandai selesai.' : 'Tugas dibuka kembali.');
     }
 
     public function destroy(Task $task): RedirectResponse
@@ -81,7 +87,7 @@ class TaskController extends Controller
         $listId = $task->list_id;
         $task->delete();
 
-        return redirect()->route('lists.show', $listId)->with('status', 'Task deleted.');
+        return redirect()->route('lists.show', $listId)->with('status', 'Tugas berhasil dihapus.');
     }
 
     private function ensureAccess(TaskList $list): void

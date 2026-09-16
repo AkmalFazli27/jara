@@ -16,13 +16,13 @@
                 <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
                     <polyline points="20 6 9 17 4 12" />
                 </svg>
-                {{ $task->is_completed ? 'Completed' : 'Mark as Complete' }}
+                {{ $task->is_completed ? 'Selesai' : 'Tandai selesai' }}
             </button>
         </form>
-        <form method="POST" action="{{ route('tasks.destroy', $task) }}" onsubmit="return confirm('Delete this task?')">
+        <form method="POST" action="{{ route('tasks.destroy', $task) }}" onsubmit="return confirm('Hapus tugas ini?')">
             @csrf
             @method('DELETE')
-            <button type="submit" class="p-2.5 rounded-xl text-rose-500 hover:bg-rose-50 hover:text-rose-700 transition-colors" title="Delete task">
+            <button type="submit" class="p-2.5 rounded-xl text-rose-500 hover:bg-rose-50 hover:text-rose-700 transition-colors" title="Hapus tugas">
                 <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24">
                     <polyline points="3 6 5 6 21 6" />
                     <path d="M19 6l-1 14H6L5 6" />
@@ -31,7 +31,7 @@
                 </svg>
             </button>
         </form>
-        <a href="{{ route('lists.show', $task->list_id) }}" class="p-2.5 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors" aria-label="Close">
+        <a href="{{ route('lists.show', ['list' => $task->list_id, ...request()->except('focus')]) }}" class="p-2.5 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors" aria-label="Tutup">
             <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                 <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
             </svg>
@@ -45,26 +45,33 @@
         <input
             name="title"
             value="{{ old('title', $task->title) }}"
-            placeholder="Task title"
+            placeholder="Judul tugas"
             required
-            class="w-full text-xl font-bold text-slate-900 bg-transparent border-none outline-none focus:ring-0 placeholder-slate-300 leading-snug"
+            maxlength="255"
+            class="w-full text-xl font-bold text-slate-900 bg-transparent border-b outline-none focus:ring-0 placeholder-slate-300 leading-snug {{ $errors->updateTask->has('title') ? 'border-rose-400' : 'border-transparent' }}"
         />
+        @error('title', 'updateTask')
+            <p class="text-sm text-rose-600">{{ $message }}</p>
+        @enderror
 
         <div class="grid grid-cols-2 gap-4">
             <div>
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5" for="task-priority">Priority</label>
+                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5" for="task-priority">Prioritas</label>
                 <select
                     id="task-priority"
                     name="priority"
                     class="w-full text-sm border border-slate-200 rounded-lg px-2.5 py-2 bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-transparent"
                 >
-                    @foreach (['high' => 'High', 'medium' => 'Medium', 'low' => 'Low'] as $value => $label)
+                    @foreach (['high' => 'Tinggi', 'medium' => 'Sedang', 'low' => 'Rendah'] as $value => $label)
                         <option value="{{ $value }}" @selected(old('priority', $task->priority) === $value)>{{ $label }}</option>
                     @endforeach
                 </select>
+                @error('priority', 'updateTask')
+                    <p class="mt-1 text-xs text-rose-600">{{ $message }}</p>
+                @enderror
             </div>
             <div>
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5" for="task-deadline">Deadline</label>
+                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5" for="task-deadline">Tenggat</label>
                 <input
                     id="task-deadline"
                     type="date"
@@ -72,6 +79,9 @@
                     value="{{ old('deadline', $task->deadline?->format('Y-m-d')) }}"
                     class="w-full text-sm border border-slate-200 rounded-lg px-2.5 py-2 bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-transparent"
                 />
+                @error('deadline', 'updateTask')
+                    <p class="mt-1 text-xs text-rose-600">{{ $message }}</p>
+                @enderror
             </div>
         </div>
 
@@ -87,18 +97,22 @@
         <div class="h-px bg-slate-100"></div>
 
         <div>
-            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2" for="task-desc">Description</label>
+            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2" for="task-desc">Deskripsi</label>
             <textarea
                 id="task-desc"
                 name="description"
                 rows="4"
-                placeholder="Add a more detailed description…"
+                maxlength="2000"
+                placeholder="Tambahkan deskripsi tugas..."
                 class="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-lg bg-white text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-transparent resize-none transition-shadow"
             >{{ old('description', $task->description) }}</textarea>
+            @error('description', 'updateTask')
+                <p class="mt-1 text-xs text-rose-600">{{ $message }}</p>
+            @enderror
         </div>
 
         <button type="submit" class="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold transition-colors">
-            Save changes
+            Simpan perubahan
         </button>
 
         <p class="text-[11px] text-slate-400 text-center">Subtasks &amp; activity comments are UI-only in the Figma design — no columns in DB (see ERD).</p>

@@ -17,7 +17,7 @@
                     <span class="w-3 h-3 rounded-full" style="background: {{ $list->color }}"></span>
                     <h2 class="text-xl font-bold text-slate-900">{{ $list->name }}</h2>
                 </div>
-                <p class="text-sm text-slate-500 ml-6">{{ $total }} tasks · {{ $doneCount }} completed</p>
+                <p class="text-sm text-slate-500 ml-6">{{ $total }} tugas · {{ $doneCount }} selesai</p>
                 @if ($list->description)
                     <p class="text-sm text-slate-500 ml-6 mt-1 max-w-xl">{{ $list->description }}</p>
                 @endif
@@ -30,13 +30,13 @@
                 <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                     <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
                 </svg>
-                Add New Task
+                Tambah tugas
             </button>
         </div>
 
         <div class="mb-6 bg-white border border-slate-200 rounded-2xl px-5 py-4 shadow-sm">
             <div class="flex items-center justify-between mb-2">
-                <span class="text-xs font-semibold text-slate-600">Overall Progress</span>
+                <span class="text-xs font-semibold text-slate-600">Progress keseluruhan</span>
                 <span class="text-xs font-bold text-indigo-600">{{ $progress }}%</span>
             </div>
             <x-progress-bar :progress="$progress" />
@@ -81,31 +81,43 @@
                 <input
                     name="search"
                     value="{{ $search }}"
-                    placeholder="Search tasks…"
+                    placeholder="Cari tugas..."
                     class="w-full pl-8 pr-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-indigo-300 placeholder-slate-400"
                 />
             </div>
 
             <select name="priority" onchange="this.form.submit()" class="text-sm border border-slate-200 rounded-lg px-2.5 py-2 bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-300">
-                <option value="all" @selected($priority === 'all')>All Priorities</option>
-                <option value="high" @selected($priority === 'high')>High</option>
-                <option value="medium" @selected($priority === 'medium')>Medium</option>
-                <option value="low" @selected($priority === 'low')>Low</option>
+                <option value="all" @selected($priority === 'all')>Semua prioritas</option>
+                <option value="high" @selected($priority === 'high')>Tinggi</option>
+                <option value="medium" @selected($priority === 'medium')>Sedang</option>
+                <option value="low" @selected($priority === 'low')>Rendah</option>
+            </select>
+
+            <select name="status" onchange="this.form.submit()" class="text-sm border border-slate-200 rounded-lg px-2.5 py-2 bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-300">
+                <option value="all" @selected($statusFilter === 'all')>Semua status</option>
+                <option value="todo" @selected($statusFilter === 'todo')>Belum selesai</option>
+                <option value="done" @selected($statusFilter === 'done')>Selesai</option>
+            </select>
+
+            <select name="deadline" onchange="this.form.submit()" class="text-sm border border-slate-200 rounded-lg px-2.5 py-2 bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-300">
+                <option value="all" @selected($deadlineFilter === 'all')>Semua tenggat</option>
+                <option value="today" @selected($deadlineFilter === 'today')>Hari ini</option>
+                <option value="overdue" @selected($deadlineFilter === 'overdue')>Terlambat</option>
             </select>
 
             <select name="sort" onchange="this.form.submit()" class="text-sm border border-slate-200 rounded-lg px-2.5 py-2 bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-300">
-                <option value="dueDate" @selected($sort === 'dueDate')>Sort: Due Date</option>
-                <option value="priority" @selected($sort === 'priority')>Sort: Priority</option>
-                <option value="name" @selected($sort === 'name')>Sort: Name</option>
+                <option value="dueDate" @selected($sort === 'dueDate')>Urutkan: Tenggat</option>
+                <option value="priority" @selected($sort === 'priority')>Urutkan: Prioritas</option>
+                <option value="name" @selected($sort === 'name')>Urutkan: Nama</option>
             </select>
 
             <select name="group" onchange="this.form.submit()" class="text-sm border border-slate-200 rounded-lg px-2.5 py-2 bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-300">
-                <option value="none" @selected($groupBy === 'none')>Group By: None</option>
-                <option value="priority" @selected($groupBy === 'priority')>Group By: Priority</option>
-                <option value="status" @selected($groupBy === 'status')>Group By: Status</option>
+                <option value="none" @selected($groupBy === 'none')>Tanpa pengelompokan</option>
+                <option value="priority" @selected($groupBy === 'priority')>Kelompokkan: Prioritas</option>
+                <option value="status" @selected($groupBy === 'status')>Kelompokkan: Status</option>
             </select>
 
-            <button type="submit" class="text-xs font-semibold px-3 py-2 rounded-lg bg-slate-900 text-white hover:bg-slate-700 transition-colors">Apply</button>
+            <button type="submit" class="text-xs font-semibold px-3 py-2 rounded-lg bg-slate-900 text-white hover:bg-slate-700 transition-colors">Terapkan</button>
         </form>
 
         <div class="space-y-4">
@@ -138,7 +150,7 @@
                                     </button>
                                 </form>
 
-                                <a href="{{ route('lists.show', $list) }}?focus={{ $task->id }}" class="flex-1 text-sm font-medium min-w-0 truncate {{ $isDone ? 'line-through text-slate-400' : 'text-slate-800' }}">
+                                <a href="{{ route('lists.show', ['list' => $list, ...request()->except('focus'), 'focus' => $task->id]) }}" class="flex-1 text-sm font-medium min-w-0 truncate {{ $isDone ? 'line-through text-slate-400' : 'text-slate-800' }}">
                                     {{ $task->title }}
                                 </a>
 
@@ -146,8 +158,8 @@
                                     <x-priority-badge :priority="$task->priority" />
                                 </div>
 
-                                <span class="text-xs font-semibold shrink-0 hidden md:block {{ $task->is_overdue ? 'text-rose-500' : 'text-slate-400' }}">
-                                    {{ $task->is_overdue ? '⚠ ' : '' }}{{ $task->due_label }}
+                                <span class="text-xs font-semibold shrink-0 {{ $task->is_overdue ? 'text-rose-500' : 'text-slate-400' }}">
+                                    {{ $task->is_overdue ? 'Terlambat · ' : '' }}{{ $task->due_label }}
                                 </span>
 
                                 <x-avatar :name="$task->list?->owner?->name ?? '—'" :size="26" />
@@ -169,7 +181,7 @@
             class="mt-6 bg-white rounded-2xl border border-slate-200 shadow-sm p-5"
         >
             @csrf
-            <h3 class="text-sm font-bold text-slate-800 mb-4">Create task in {{ $list->name }}</h3>
+            <h3 class="text-sm font-bold text-slate-800 mb-4">Buat tugas di {{ $list->name }}</h3>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <input
                     id="task-title-input"

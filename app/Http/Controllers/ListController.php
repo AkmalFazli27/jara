@@ -63,39 +63,54 @@ class ListController extends Controller
 
         $validated = $request->validate([
             'search' => ['nullable', 'string', 'max:100'],
-            'priority' => ['nullable', 'in' => ['all', 'low', 'medium', 'high']],
-            'sort' => ['nullable', 'in' => ['dueDate', 'priority', 'name']],
-            'group' => ['nullable', 'in' => ['none', 'priority', 'status']],
+            'priority' => ['nullable', 'in:all,low,medium,high'],
+            'status' => ['nullable', 'in:all,todo,done'],
+            'deadline' => ['nullable', 'in:all,today,overdue'],
+            'sort' => ['nullable', 'in:dueDate,priority,name'],
+            'group' => ['nullable', 'in:none,priority,status'],
             'focus' => ['nullable', 'integer'],
         ]);
 
         $search = trim((string) ($validated['search'] ?? ''));
         $priority = $validated['priority'] ?? 'all';
+        $status = $validated['status'] ?? 'all';
+        $deadline = $validated['deadline'] ?? 'all';
         $sort = $validated['sort'] ?? 'dueDate';
         $group = $validated['group'] ?? 'none';
 
         $query = $list->tasks()->with('list.owner')
             ->when($search !== '', fn ($q) => $q->where('title', 'like', "%{$search}%"))
-            ->when($priority !== 'all', fn ($q) => $q->where('priority', $priority));
+            ->when($priority !== 'all', fn ($q) => $q->where('priority', $priority))
+            ->when($status === 'todo', fn ($q) => $q->where('is_completed', false))
+            ->when($status === 'done', fn ($q) => $q->where('is_completed', true))
+            ->when($deadline === 'today', fn ($q) => $q->whereDate('deadline', today(\App\Models\Task::CALENDAR_TIMEZONE)))
+            ->when($deadline === 'overdue', fn ($q) => $q
+                ->where('is_completed', false)
+                ->whereNotNull('deadline')
+                ->whereDate('deadline', '<', today(\App\Models\Task::CALENDAR_TIMEZONE)));
+
+        $query = match ($sort) {
+            'priority' => $query
+                ->orderByRaw("CASE priority WHEN 'high' THEN 1 WHEN 'medium' THEN 2 ELSE 3 END")
+                ->orderByRaw('deadline IS NULL')
+                ->orderBy('deadline')
+                ->orderBy('title'),
+            'name' => $query->orderBy('title'),
+            default => $query->orderByRaw('deadline IS NULL')->orderBy('deadline')->orderBy('title'),
+        };
 
         $tasks = $query->get();
-
-        $tasks = match ($sort) {
-            'priority' => $tasks->sortBy(['priority' => 'asc', 'deadline' => 'asc'])->values(),
-            'name' => $tasks->sortBy('title')->values(),
-            default => $tasks->sortBy(fn ($t) => $t->deadline?->timestamp ?? PHP_INT_MAX)->values(),
-        };
 
         $total = $list->tasks()->count();
         $doneCount = $list->tasks()->where('is_completed', true)->count();
 
         $groups = match ($group) {
-            'priority' => collect(['high' => 'High', 'medium' => 'Medium', 'low' => 'Low'])
+            'priority' => collect(['high' => 'Tinggi', 'medium' => 'Sedang', 'low' => 'Rendah'])
                 ->map(fn ($label, $p) => ['label' => $label, 'items' => $tasks->where('priority', $p)->values()])
                 ->filter(fn ($g) => $g['items']->isNotEmpty())->values(),
             'status' => collect([
-                ['label' => 'To Do', 'items' => $tasks->where('is_completed', false)->values()],
-                ['label' => 'Done', 'items' => $tasks->where('is_completed', true)->values()],
+                ['label' => 'Belum selesai', 'items' => $tasks->where('is_completed', false)->values()],
+                ['label' => 'Selesai', 'items' => $tasks->where('is_completed', true)->values()],
             ])->filter(fn ($g) => $g['items']->isNotEmpty())->values(),
             default => collect([['label' => null, 'items' => $tasks]]),
         };
@@ -115,6 +130,8 @@ class ListController extends Controller
             'groups' => $groups,
             'search' => $search,
             'priority' => $priority,
+            'statusFilter' => $status,
+            'deadlineFilter' => $deadline,
             'sort' => $sort,
             'groupBy' => $group,
             'progress' => $total > 0 ? (int) round($doneCount / $total * 100) : 0,
