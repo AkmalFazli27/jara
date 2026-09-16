@@ -17,13 +17,14 @@ class ListController extends Controller
     {
         $userId = (int) Auth::id();
         $search = trim((string) $request->query('search', ''));
+        $showArchived = $request->boolean('archived');
 
         $lists = TaskList::with(['owner', 'tasks'])
             ->withCount(['tasks', 'tasks as completed_tasks_count' => fn ($q) => $q->where('is_completed', true)])
             ->where(fn ($q) => $q
                 ->where('owner_id', $userId)
                 ->orWhereIn('id', ListMember::where('user_id', $userId)->select('list_id')))
-            ->where('is_archived', false)
+            ->where('is_archived', $showArchived)
             ->when($search !== '', fn ($q) => $q->where('name', 'like', "%{$search}%"))
             ->orderByDesc('updated_at')
             ->get();
@@ -37,7 +38,7 @@ class ListController extends Controller
             ->paginate(20)
             ->withQueryString();
 
-        return view('lists.index', compact('lists', 'ownedLists', 'sharedLists', 'tasks', 'search'));
+        return view('lists.index', compact('lists', 'ownedLists', 'sharedLists', 'tasks', 'search', 'showArchived'));
     }
 
     /** Kanban: kolom To Do / Done nyata; In Progress & Review UI-only (tak ada kolom status di DB). */
@@ -215,6 +216,18 @@ class ListController extends Controller
         $list->delete(); // cascade ke tasks + members
 
         return redirect()->route('lists.index')->with('status', 'Project deleted.');
+    }
+
+    public function archive(TaskList $list): RedirectResponse
+    {
+        $this->ensureOwner($list);
+
+        $list->update(['is_archived' => ! $list->is_archived]);
+
+        return redirect()->route('lists.index')->with(
+            'status',
+            $list->is_archived ? 'Project archived.' : 'Project restored.'
+        );
     }
 
     private function accessibleListIds(int $userId): array
