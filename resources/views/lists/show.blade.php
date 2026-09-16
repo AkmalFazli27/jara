@@ -42,6 +42,37 @@
             <x-progress-bar :progress="$progress" />
         </div>
 
+        <div class="mb-6 bg-white border border-slate-200 rounded-2xl px-5 py-4 shadow-sm">
+            <h3 class="text-xs font-bold text-slate-600 uppercase tracking-wide mb-3">Anggota ({{ $list->members->count() }})</h3>
+            <ul class="space-y-2 mb-4">
+                @foreach ($list->members as $member)
+                    <li class="flex items-center justify-between text-sm">
+                        <span class="text-slate-700">{{ $member->user?->name }} <span class="text-slate-400">({{ $member->user?->email }})</span></span>
+                        <span class="text-xs font-semibold {{ $member->role === 'owner' ? 'text-amber-600' : 'text-slate-400' }}">{{ $member->role }}</span>
+                    </li>
+                @endforeach
+            </ul>
+            @if ((int) $list->owner_id === (int) auth()->id())
+                <form method="POST" action="{{ route('lists.members.store', $list) }}" class="flex gap-2">
+                    @csrf
+                    <select name="user_id" required
+                        class="flex-1 text-sm border rounded-lg px-2.5 py-2 bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-300 {{ $errors->has('user_id') ? 'border-rose-400' : 'border-slate-200' }}">
+                        <option value="">— Pilih pengguna —</option>
+                        @foreach ($candidateUsers as $candidate)
+                            <option value="{{ $candidate->id }}" @selected(old('user_id') == $candidate->id)>{{ $candidate->name }} ({{ $candidate->email }})</option>
+                        @endforeach
+                    </select>
+                    <button type="submit" class="text-xs font-semibold px-3 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 transition-colors">Undang</button>
+                </form>
+                @error('user_id')
+                    <p class="mt-2 text-sm text-rose-600">{{ $message }}</p>
+                @enderror
+                @if (session('status'))
+                    <p class="mt-2 text-sm text-emerald-600">{{ session('status') }}</p>
+                @endif
+            @endif
+        </div>
+
         <form method="GET" action="{{ route('lists.show', $list) }}" class="flex flex-wrap items-center gap-2.5 mb-5">
             <div class="relative flex-1 min-w-[180px] max-w-xs">
                 <svg class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">

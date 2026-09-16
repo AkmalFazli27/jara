@@ -101,8 +101,14 @@ class ListController extends Controller
             ? $list->tasks()->find($validated['focus'])
             : null;
 
+        $memberIds = $list->members()->pluck('user_id')->all();
+        $candidateUsers = \App\Models\User::whereNotIn('id', $memberIds ?: [0])
+            ->orderBy('name')
+            ->get(['id', 'name', 'email']);
+
         return view('lists.show', [
             'list' => $list->load(['owner', 'members.user']),
+            'candidateUsers' => $candidateUsers,
             'groups' => $groups,
             'search' => $search,
             'priority' => $priority,
@@ -140,6 +146,32 @@ class ListController extends Controller
         });
 
         return redirect()->route('lists.show', $list)->with('status', 'Project created.');
+    }
+
+    /** Undang anggota via dropdown (F-11). Hanya owner. */
+    public function invite(Request $request, TaskList $list): RedirectResponse
+    {
+        $this->ensureOwner($list);
+
+        $validated = $request->validate(
+            ['user_id' => ['required', 'integer', 'exists:users,id']],
+            [
+                'user_id.required' => 'Pilih pengguna yang akan diundang.',
+                'user_id.exists' => 'Pengguna tidak ditemukan.',
+            ]
+        );
+
+        if (ListMember::where('list_id', $list->id)->where('user_id', $validated['user_id'])->exists()) {
+            return back()->withErrors(['user_id' => 'Pengguna ini sudah menjadi anggota daftar.']);
+        }
+
+        ListMember::create([
+            'list_id' => $list->id,
+            'user_id' => $validated['user_id'],
+            'role' => 'member',
+        ]);
+
+        return back()->with('status', 'Anggota berhasil ditambahkan.');
     }
 
     public function update(Request $request, TaskList $list): RedirectResponse
