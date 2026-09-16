@@ -23,18 +23,21 @@ class ListController extends Controller
             ->where(fn ($q) => $q
                 ->where('owner_id', $userId)
                 ->orWhereIn('id', ListMember::where('user_id', $userId)->select('list_id')))
+            ->where('is_archived', false)
             ->when($search !== '', fn ($q) => $q->where('name', 'like', "%{$search}%"))
             ->orderByDesc('updated_at')
             ->get();
 
+        $ownedLists = $lists->where('owner_id', $userId)->values();
+        $sharedLists = $lists->where('owner_id', '!=', $userId)->values();
+
         $tasks = \App\Models\Task::with('list.owner')
             ->whereIn('list_id', $lists->pluck('id')->all() ?: [0])
-            ->when($search !== '', fn ($q) => $q->where('title', 'like', "%{$search}%"))
             ->orderByDesc('updated_at')
             ->paginate(20)
             ->withQueryString();
 
-        return view('lists.index', compact('lists', 'tasks', 'search'));
+        return view('lists.index', compact('lists', 'ownedLists', 'sharedLists', 'tasks', 'search'));
     }
 
     /** Kanban: kolom To Do / Done nyata; In Progress & Review UI-only (tak ada kolom status di DB). */

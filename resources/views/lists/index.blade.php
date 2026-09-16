@@ -23,7 +23,7 @@
                 <input
                     name="search"
                     value="{{ $search }}"
-                    placeholder="Search tasks..."
+                    placeholder="Search projects..."
                     class="w-full pl-9 pr-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-400 placeholder-slate-400"
                 />
             </div>
@@ -34,8 +34,11 @@
         </form>
 
         @if ($lists->isNotEmpty())
-            <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 mb-6">
-                @foreach ($lists as $project)
+            @foreach ([['title' => 'My Projects', 'items' => $ownedLists], ['title' => 'Shared Projects', 'items' => $sharedLists]] as $group)
+                @if ($group['items']->isNotEmpty())
+                    <h3 class="text-sm font-bold text-slate-700 mb-3">{{ $group['title'] }}</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 mb-6">
+                        @foreach ($group['items'] as $project)
                     <a href="{{ route('lists.show', $project) }}" class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm hover:shadow-md hover:border-indigo-200 transition-all">
                         <div class="flex items-center gap-2.5 mb-2">
                             <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background: {{ $project->color }}"></span>
@@ -44,8 +47,10 @@
                         <p class="text-xs text-slate-500 mb-3">{{ $project->tasks_count }} tasks · {{ $project->completed_tasks_count }} completed</p>
                         <x-progress-bar :progress="$project->tasks_count > 0 ? round($project->completed_tasks_count / $project->tasks_count * 100) : 0" />
                     </a>
-                @endforeach
-            </div>
+                        @endforeach
+                    </div>
+                @endif
+            @endforeach
         @endif
 
         <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
