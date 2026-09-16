@@ -21,6 +21,8 @@ class Task extends Model
 {
     use HasFactory;
 
+    public const CALENDAR_TIMEZONE = 'Asia/Jakarta';
+
     protected $fillable = [
         'list_id', 'title', 'description', 'priority',
         'deadline', 'is_completed', 'completed_at',
@@ -40,15 +42,17 @@ class Task extends Model
         return $this->belongsTo(TaskList::class, 'list_id');
     }
 
-    /** Label tanggal ala desain ("Sep 14"), "—" bila tanpa deadline. */
+    /** Label tanggal ringkas untuk tampilan tugas. */
     protected function dueLabel(): Attribute
     {
-        return Attribute::get(fn (): string => $this->deadline ? $this->deadline->format('M j') : '—');
+        return Attribute::get(fn (): string => $this->deadline ? $this->deadline->format('d/m/Y') : 'Tanpa tenggat');
     }
 
     /** Overdue = punya deadline lewat + belum selesai (kontrak F-17). */
     protected function isOverdue(): Attribute
     {
-        return Attribute::get(fn (): bool => ! $this->is_completed && $this->deadline !== null && $this->deadline->isPast());
+        return Attribute::get(fn (): bool => ! $this->is_completed
+            && $this->deadline !== null
+            && $this->deadline->isBefore(today(self::CALENDAR_TIMEZONE)));
     }
 }

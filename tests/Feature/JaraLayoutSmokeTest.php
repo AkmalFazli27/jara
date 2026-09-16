@@ -42,7 +42,7 @@ class JaraLayoutSmokeTest extends TestCase
             ]);
 
             $this->get(route('lists.show', $list))->assertOk()->assertSee('Smoke Task', false);
-            $this->get(route('lists.show', $list).'?focus='.$task->id)->assertOk()->assertSee('Save changes', false);
+            $this->get(route('lists.show', $list).'?focus='.$task->id)->assertOk()->assertSee('Simpan perubahan', false);
             $this->get('/kanban')->assertOk()->assertSee('Smoke Task', false);
             $this->get('/dashboard')->assertOk()->assertSee('Smoke Task', false);
         } finally {
