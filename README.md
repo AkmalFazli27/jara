@@ -7,7 +7,7 @@ dapat menambahkan pengguna lain untuk dikerjakan bersama dan memantau progress.
 Admin mengelola akun pengguna dalam sistem.
 
 - Framework: **Laravel 13** (PHP >= 8.3) — teruji di PHP 8.5
-- Database: **MySQL 8.4 (Aiven, SSL wajib)** — database `defaultdb`
+- Database: **MySQL 8.x lokal (Laragon)** — database `jara`
 - Struktur database: lihat **[ERD.md](./ERD.md)** (wajib dibaca semua programmer)
 
 ## Pembagian SRS
@@ -24,16 +24,16 @@ Programmer 3 - F-13 Buat Tugas Dalam Daftar, F-14 Edit & Hapus Tugas, F-15 Detai
 composer install
 npm install
 
-# 3. Copy .env.example menjadi .env, isi DB_USERNAME + DB_PASSWORD
-#    masing-masing (ameng / dehar / farras). Jangan commit password.
+# 3. Copy .env.example menjadi .env, sesuaikan DB_PASSWORD
+#    dengan password root Laragon masing-masing. Jangan commit password.
 Copy-Item .env.example .env
 php artisan key:generate
 
-# 4. Sesuaikan path MYSQL_ATTR_SSL_CA di .env ke lokasi clone masing-masing,
-#    pastikan storage/certs/aiven-ca.pem ada.
+# 4. Buat database jara di Laragon (HeidiSQL):
+#    CREATE DATABASE IF NOT EXISTS `jara` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
-# 5. Sinkron skema database bersama
-php artisan migrate
+# 5. Sinkron skema database lokal
+php artisan migrate:fresh
 php artisan db:show
 
 # 6. Jalankan aplikasi

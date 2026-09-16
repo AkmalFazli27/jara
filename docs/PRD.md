@@ -208,9 +208,9 @@ Sebagai pengguna, saya ingin memfilter/mencari tugas dan melihat progress daftar
 ## 7. Asumsi & Ketergantungan
 
 1. Akun pengguna murni dibuatkan admin — tidak ada registrasi mandiri.
-2. Satu database bersama (`defaultdb` di Aiven) dipakai semua programmer selama pengembangan.
+2. Tiap programmer memakai database lokal sendiri (`jara`) dengan skema dari migration git.
 3. Tiga programmer bekerja paralel per modul (P1: auth+admin, P2: daftar+kolaborasi, P3: tugas+progress) dengan kontrak skema di `ERD.md`.
-4. Koneksi internet ke Aiven tersedia saat pengembangan & demo.
+4. MySQL lokal (Laragon) tersedia saat pengembangan & demo.
 5. Satu pintu login untuk user & admin; perbedaan perilaku diatur dari `users.role`.
 
 ---
@@ -220,9 +220,9 @@ Sebagai pengguna, saya ingin memfilter/mencari tugas dan melihat progress daftar
 | Risiko | Dampak | Mitigasi |
 |---|---|---|
 | Konflik migration antar programmer | Skema DB rusak/inkonsisten | Skema hanya diubah via migration bernomor modul; satu orang pertama `migrate`, lainnya pull lalu `migrate` |
-| Aiven tidak bisa diakses saat demo | Demo gagal total | Siapkan seed data + screenshot alur utama sebagai cadangan |
+| MySQL Laragon belum jalan saat demo | Demo gagal total | Pastikan Laragon Start All + siapkan seed/screenshot |
 | Otorisasi hanya di frontend | Member bisa memodifikasi data owner | Setiap aksi sensitif divalidasi ulang di server (policy/middleware) |
-| Password bocor via chat/repo | Akun DB disalahgunakan | Password hanya di `.env` lokal; rotate password Aiven setelah praktikum |
+| Password bocor via chat/repo | Akun DB disalahgunakan | Password hanya di `.env` lokal; ganti password root Laragon setelah praktikum |
 | Scope meluber (notif, file, mobile) | Tidak selesai tepat waktu | Out-of-scope di §4.2 dikunci; permintaan baru masuk backlog, bukan sprint ini |
 
 ---

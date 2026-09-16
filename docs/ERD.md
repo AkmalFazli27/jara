@@ -2,7 +2,7 @@
 
 > **Sumber kebenaran struktur database.** Semua programmer WAJIB mengikuti skema ini.
 > Perubahan skema HANYA lewat file migration di git — dilarang CREATE/ALTER manual.
-> Database: MySQL 8.4 (Aiven) · database `defaultdb` · koneksi wajib SSL.
+> Database: MySQL 8.x lokal (Laragon) · database `jara` · tanpa SSL.
 
 ## Diagram
 
@@ -117,21 +117,21 @@ Migration: `2026_09_09_042226_create_tasks_table.php`.
 
 ## Setup Database per Programmer
 
-1. Copy `.env.example` menjadi `.env`, isi kredensial sendiri:
+1. Pastikan MySQL Laragon berjalan, lalu buat database:
+   ```sql
+   CREATE DATABASE IF NOT EXISTS `jara` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+   ```
+2. Copy `.env.example` menjadi `.env`, sesuaikan `DB_PASSWORD` dengan password root Laragon masing-masing:
    ```env
    DB_CONNECTION=mysql
-   DB_HOST=devano149-ppk-project-ppk.c.aivencloud.com
-   DB_PORT=24353
-   DB_DATABASE=defaultdb
-   DB_USERNAME=ameng      # ganti: ameng / dehar / farras
-   DB_PASSWORD=********   # password masing-masing, JANGAN di-commit
-   MYSQL_ATTR_SSL_CA=D:/Ameng/Kuliah/PPK/Praktikum/jara/storage/certs/aiven-ca.pem
+   DB_HOST=127.0.0.1
+   DB_PORT=3306
+   DB_DATABASE=jara
+   DB_USERNAME=root
+   DB_PASSWORD=
    ```
-   Sesuaikan path `MYSQL_ATTR_SSL_CA` dengan lokasi clone di laptop masing-masing (pakai forward slash).
-2. Pastikan file `storage/certs/aiven-ca.pem` ada (ikut ter-commit di repo).
 3. Jalankan:
    ```powershell
-   php artisan migrate
+   php artisan migrate:fresh
    php artisan db:show
    ```
-4. Jika `migrate` melaporkan "Nothing to migrate", skema lokal sudah sama dengan server.
