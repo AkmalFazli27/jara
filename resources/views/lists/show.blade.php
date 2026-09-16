@@ -46,9 +46,19 @@
             <h3 class="text-xs font-bold text-slate-600 uppercase tracking-wide mb-3">Anggota ({{ $list->members->count() }})</h3>
             <ul class="space-y-2 mb-4">
                 @foreach ($list->members as $member)
-                    <li class="flex items-center justify-between text-sm">
+                    <li class="flex items-center justify-between text-sm gap-2">
                         <span class="text-slate-700">{{ $member->user?->name }} <span class="text-slate-400">({{ $member->user?->email }})</span></span>
-                        <span class="text-xs font-semibold {{ $member->role === 'owner' ? 'text-amber-600' : 'text-slate-400' }}">{{ $member->role }}</span>
+                        <span class="flex items-center gap-2">
+                            <span class="text-xs font-semibold {{ $member->role === 'owner' ? 'text-amber-600' : 'text-slate-400' }}">{{ $member->role }}</span>
+                            @if ((int) $list->owner_id === (int) auth()->id() && $member->role !== 'owner')
+                                <form method="POST" action="{{ route('lists.members.destroy', [$list, $member->user_id]) }}" class="inline"
+                                      onsubmit="return confirm('Hapus {{ $member->user?->name }} dari daftar ini?')">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="text-xs font-semibold text-rose-600 hover:text-rose-800 transition-colors">Hapus</button>
+                                </form>
+                            @endif
+                        </span>
                     </li>
                 @endforeach
             </ul>
@@ -71,6 +81,16 @@
                     <p class="mt-2 text-sm text-emerald-600">{{ session('status') }}</p>
                 @endif
             @endif
+            @if ((int) $list->owner_id !== (int) auth()->id())
+                <form method="POST" action="{{ route('lists.leave', $list) }}" class="mt-2"
+                      onsubmit="return confirm('Keluar dari daftar ini? Anda tidak bisa membukanya lagi kecuali diundang ulang.')">
+                    @csrf
+                    <button type="submit" class="text-xs font-semibold px-3 py-2 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors">Keluar dari daftar</button>
+                </form>
+            @endif
+            @error('member')
+                <p class="mt-2 text-sm text-rose-600">{{ $message }}</p>
+            @enderror
         </div>
 
         <form method="GET" action="{{ route('lists.show', $list) }}" class="flex flex-wrap items-center gap-2.5 mb-5">
