@@ -73,6 +73,12 @@
             </div>
         @endif
 
+        @if (session('error'))
+            <div class="p-4 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 text-sm">
+                {{ session('error') }}
+            </div>
+        @endif
+
         <!-- Filter & Search Bar -->
         <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-6 shadow-xl">
             <form action="{{ route('admin.users.index') }}" method="GET" class="flex flex-col sm:flex-row gap-3">
@@ -145,7 +151,19 @@
                                 </td>
                                 <td class="px-6 py-4 text-xs text-slate-400">{{ $userItem->created_at?->format('d M Y, H:i') }}</td>
                                 <td class="px-6 py-4 text-right">
-                                    <span class="text-xs text-slate-500 italic">No Actions (F-06)</span>
+                                    @if(auth()->id() === $userItem->id)
+                                        <span class="text-xs text-slate-500 italic">Akun ini</span>
+                                    @else
+                                        <form action="{{ route('admin.users.destroy', $userItem) }}" method="POST" class="inline"
+                                              onsubmit="return confirm('Hapus akun {{ $userItem->name }} ({{ $userItem->email }})? Tindakan ini tidak bisa dibatalkan.')">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit"
+                                                    class="px-3 py-1.5 rounded-lg bg-rose-600/15 hover:bg-rose-600/30 text-rose-400 border border-rose-500/30 text-xs font-semibold transition-all">
+                                                Hapus
+                                            </button>
+                                        </form>
+                                    @endif
                                 </td>
                             </tr>
                         @empty
