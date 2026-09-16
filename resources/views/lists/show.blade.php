@@ -143,29 +143,41 @@
                 <input
                     id="task-title-input"
                     name="title"
+                    value="{{ old('title') }}"
                     required
                     maxlength="255"
-                    placeholder="Task title *"
-                    class="px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-indigo-300 placeholder-slate-400"
+                    placeholder="Judul tugas *"
+                    class="px-3 py-2 text-sm border rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-indigo-300 placeholder-slate-400 {{ $errors->has('title') ? 'border-rose-400' : 'border-slate-200' }}"
                 />
                 <select name="priority" class="text-sm border border-slate-200 rounded-lg px-2.5 py-2 bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-300">
-                    <option value="medium">Priority: Medium</option>
-                    <option value="high">Priority: High</option>
-                    <option value="low">Priority: Low</option>
+                    <option value="medium" @selected(old('priority', 'medium') === 'medium')>Prioritas: Sedang</option>
+                    <option value="high" @selected(old('priority') === 'high')>Prioritas: Tinggi</option>
+                    <option value="low" @selected(old('priority') === 'low')>Prioritas: Rendah</option>
                 </select>
                 <input
                     type="date"
                     name="deadline"
-                    class="text-sm border border-slate-200 rounded-lg px-2.5 py-2 bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                    value="{{ old('deadline') }}"
+                    class="text-sm border rounded-lg px-2.5 py-2 bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-300 {{ $errors->has('deadline') ? 'border-rose-400' : 'border-slate-200' }}"
                 />
                 <input
                     name="description"
+                    value="{{ old('description') }}"
                     maxlength="2000"
-                    placeholder="Short description (optional)"
-                    class="px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-indigo-300 placeholder-slate-400"
+                    placeholder="Deskripsi singkat (opsional)"
+                    class="px-3 py-2 text-sm border rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-indigo-300 placeholder-slate-400 {{ $errors->has('description') ? 'border-rose-400' : 'border-slate-200' }}"
                 />
             </div>
-            <button type="submit" class="mt-3 px-4 py-2 text-sm font-semibold bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors">Add task</button>
+            @if ($errors->hasAny(['title', 'description', 'priority', 'deadline']))
+                <div class="mt-3 space-y-1 text-sm text-rose-600">
+                    @foreach (['title', 'description', 'priority', 'deadline'] as $field)
+                        @error($field)
+                            <p>{{ $message }}</p>
+                        @enderror
+                    @endforeach
+                </div>
+            @endif
+            <button type="submit" class="mt-3 px-4 py-2 text-sm font-semibold bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors">Tambah tugas</button>
         </form>
 
         @if ($focusedTask)
