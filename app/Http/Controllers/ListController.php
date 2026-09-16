@@ -7,6 +7,7 @@ use App\Models\TaskList;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class ListController extends Controller
@@ -122,16 +123,21 @@ class ListController extends Controller
             'description' => ['nullable', 'string'],
         ]);
 
-        $list = TaskList::create([
-            'owner_id' => Auth::id(),
-            'name' => $validated['name'],
-            'description' => $validated['description'] ?? null,
-        ]);
+        $list = DB::transaction(function () use ($validated): TaskList {
+            $list = TaskList::create([
+                'owner_id' => Auth::id(),
+                'name' => $validated['name'],
+                'description' => $validated['description'] ?? null,
+            ]);
 
-        ListMember::firstOrCreate(
-            ['list_id' => $list->id, 'user_id' => Auth::id()],
-            ['role' => 'owner']
-        );
+            ListMember::create([
+                'list_id' => $list->id,
+                'user_id' => Auth::id(),
+                'role' => 'owner',
+            ]);
+
+            return $list;
+        });
 
         return redirect()->route('lists.show', $list)->with('status', 'Project created.');
     }
