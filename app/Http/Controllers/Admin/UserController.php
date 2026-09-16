@@ -57,4 +57,19 @@ class UserController extends Controller
         return redirect()->route('admin.users.index')
             ->with('success', 'Akun pengguna berhasil ditambahkan!');
     }
+
+    /**
+     * Remove the specified user from storage (F-06).
+     */
+    public function destroy(Request $request, User $user): \Illuminate\Http\RedirectResponse
+    {
+        if ($request->user()->is($user)) {
+            return back()->with('error', 'Anda tidak dapat menghapus akun sendiri.');
+        }
+
+        $user->delete();
+
+        return redirect()->route('admin.users.index')
+            ->with('success', 'Akun pengguna berhasil dihapus.');
+    }
 }
