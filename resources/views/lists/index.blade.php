@@ -39,14 +39,77 @@
                     <h3 class="text-sm font-bold text-slate-700 mb-3">{{ $group['title'] }}</h3>
                     <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 mb-6">
                         @foreach ($group['items'] as $project)
-                    <a href="{{ route('lists.show', $project) }}" class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm hover:shadow-md hover:border-indigo-200 transition-all">
-                        <div class="flex items-center gap-2.5 mb-2">
-                            <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background: {{ $project->color }}"></span>
-                            <p class="text-sm font-bold text-slate-900 truncate">{{ $project->name }}</p>
-                        </div>
-                        <p class="text-xs text-slate-500 mb-3">{{ $project->tasks_count }} tasks · {{ $project->completed_tasks_count }} completed</p>
-                        <x-progress-bar :progress="$project->tasks_count > 0 ? round($project->completed_tasks_count / $project->tasks_count * 100) : 0" />
-                    </a>
+                            <div x-data="{ editOpen: false }" class="relative bg-white rounded-2xl border border-slate-200 p-5 shadow-sm hover:shadow-md hover:border-indigo-200 transition-all">
+                                <div class="flex items-start justify-between gap-3 mb-2">
+                                    <a href="{{ route('lists.show', $project) }}" class="flex items-center gap-2.5 min-w-0">
+                                        <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background: {{ $project->color }}"></span>
+                                        <p class="text-sm font-bold text-slate-900 truncate">{{ $project->name }}</p>
+                                    </a>
+                                    @if ((int) $project->owner_id === (int) auth()->id())
+                                        <button
+                                            type="button"
+                                            @click="editOpen = true"
+                                            class="shrink-0 rounded-lg bg-indigo-50 px-2.5 py-1.5 text-xs font-semibold text-indigo-600 hover:bg-indigo-100 hover:text-indigo-800"
+                                        >
+                                            Edit
+                                        </button>
+                                    @endif
+                                </div>
+                                <a href="{{ route('lists.show', $project) }}" class="block">
+                                    <p class="text-xs text-slate-500 mb-3">{{ $project->tasks_count }} tasks · {{ $project->completed_tasks_count }} completed</p>
+                                    <x-progress-bar :progress="$project->tasks_count > 0 ? round($project->completed_tasks_count / $project->tasks_count * 100) : 0" />
+                                </a>
+
+                                @if ((int) $project->owner_id === (int) auth()->id())
+                                    <div
+                                        x-show="editOpen"
+                                        x-cloak
+                                        @click.self="editOpen = false"
+                                        @keydown.escape.window="editOpen = false"
+                                        class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm"
+                                        role="dialog"
+                                        aria-modal="true"
+                                        aria-label="Edit project"
+                                    >
+                                        <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-lg overflow-hidden text-left">
+                                            <form method="POST" action="{{ route('lists.update', $project) }}">
+                                                @csrf
+                                                @method('PUT')
+                                                <div class="px-6 pt-6">
+                                                    <h2 class="text-base font-bold text-slate-900">Edit Project</h2>
+                                                    <p class="text-xs text-slate-400 mt-1">Update your project details.</p>
+                                                </div>
+                                                <div class="px-6 py-5 space-y-4">
+                                                    <div>
+                                                        <label class="block text-xs font-semibold text-slate-700 mb-1.5" for="project-name-{{ $project->id }}">Project Name</label>
+                                                        <input
+                                                            id="project-name-{{ $project->id }}"
+                                                            name="name"
+                                                            value="{{ $project->name }}"
+                                                            required
+                                                            maxlength="255"
+                                                            class="w-full px-3.5 py-2.5 text-sm border border-slate-200 rounded-xl bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent"
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <label class="block text-xs font-semibold text-slate-700 mb-1.5" for="project-description-{{ $project->id }}">Description</label>
+                                                        <textarea
+                                                            id="project-description-{{ $project->id }}"
+                                                            name="description"
+                                                            rows="3"
+                                                            class="w-full px-3.5 py-2.5 text-sm border border-slate-200 rounded-xl bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent resize-none"
+                                                        >{{ $project->description }}</textarea>
+                                                    </div>
+                                                </div>
+                                                <div class="flex items-center justify-end gap-3 px-6 py-4 border-t border-slate-100 bg-slate-50/60">
+                                                    <button type="button" @click="editOpen = false" class="px-4 py-2 text-sm font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-xl">Cancel</button>
+                                                    <button type="submit" class="px-5 py-2 text-sm font-semibold bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl">Save changes</button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                @endif
+                            </div>
                         @endforeach
                     </div>
                 @endif

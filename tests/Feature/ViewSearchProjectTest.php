@@ -29,6 +29,7 @@ class ViewSearchProjectTest extends TestCase
         $response->assertOk()
             ->assertSee('My Projects', false)
             ->assertSee('Owned Project', false)
+            ->assertSee('Edit', false)
             ->assertSee('Shared Projects', false)
             ->assertSee('Shared Project', false)
             ->assertDontSee('Hidden Project', false);
