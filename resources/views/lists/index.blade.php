@@ -2,16 +2,26 @@
     <div>
         <div class="flex items-center justify-between mb-6">
             <h2 class="text-xl font-bold text-slate-900">Task List</h2>
-            <button
-                @click="createProjectOpen = true"
-                class="flex items-center gap-1.5 text-sm font-semibold bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg transition-colors shadow-sm"
-            >
-                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                    <line x1="12" y1="5" x2="12" y2="19" />
-                    <line x1="5" y1="12" x2="19" y2="12" />
-                </svg>
-                New Project
-            </button>
+            <div class="flex items-center gap-2">
+                <a
+                    href="{{ route('lists.index', $showArchived ? [] : ['archived' => 1]) }}"
+                    class="text-xs font-semibold text-slate-500 hover:text-indigo-600 px-3 py-2"
+                >
+                    {{ $showArchived ? 'Active Projects' : 'Archived Projects' }}
+                </a>
+                @unless ($showArchived)
+                    <button
+                        @click="createProjectOpen = true"
+                        class="flex items-center gap-1.5 text-sm font-semibold bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg transition-colors shadow-sm"
+                    >
+                        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                            <line x1="12" y1="5" x2="12" y2="19" />
+                            <line x1="5" y1="12" x2="19" y2="12" />
+                        </svg>
+                        New Project
+                    </button>
+                @endunless
+            </div>
         </div>
 
         <form method="GET" action="{{ route('lists.index') }}" class="flex flex-wrap items-center gap-3 mb-5">
@@ -34,7 +44,7 @@
         </form>
 
         @if ($lists->isNotEmpty())
-            @foreach ([['title' => 'My Projects', 'items' => $ownedLists], ['title' => 'Shared Projects', 'items' => $sharedLists]] as $group)
+            @foreach ([['title' => $showArchived ? 'My Archived Projects' : 'My Projects', 'items' => $ownedLists], ['title' => $showArchived ? 'Shared Archived Projects' : 'Shared Projects', 'items' => $sharedLists]] as $group)
                 @if ($group['items']->isNotEmpty())
                     <h3 class="text-sm font-bold text-slate-700 mb-3">{{ $group['title'] }}</h3>
                     <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 mb-6">
@@ -46,13 +56,29 @@
                                         <p class="text-sm font-bold text-slate-900 truncate">{{ $project->name }}</p>
                                     </a>
                                     @if ((int) $project->owner_id === (int) auth()->id())
-                                        <button
-                                            type="button"
-                                            @click="editOpen = true"
-                                            class="shrink-0 rounded-lg bg-indigo-50 px-2.5 py-1.5 text-xs font-semibold text-indigo-600 hover:bg-indigo-100 hover:text-indigo-800"
-                                        >
-                                            Edit
-                                        </button>
+                                        <div class="flex shrink-0 items-center gap-1.5">
+                                            @unless ($showArchived)
+                                                <button
+                                                    type="button"
+                                                    @click="editOpen = true"
+                                                    class="rounded-lg bg-indigo-50 px-2.5 py-1.5 text-xs font-semibold text-indigo-600 hover:bg-indigo-100 hover:text-indigo-800"
+                                                >
+                                                    Edit
+                                                </button>
+                                            @endunless
+                                            <form method="POST" action="{{ route('lists.archive', $project) }}">
+                                                @csrf
+                                                @method('PATCH')
+                                                <button type="submit" class="rounded-lg bg-slate-100 px-2.5 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-200">
+                                                    {{ $showArchived ? 'Unarchive' : 'Archive' }}
+                                                </button>
+                                            </form>
+                                            <form method="POST" action="{{ route('lists.destroy', $project) }}" onsubmit="return confirm('Delete this project permanently?')">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="rounded-lg bg-rose-50 px-2.5 py-1.5 text-xs font-semibold text-rose-600 hover:bg-rose-100">Delete</button>
+                                            </form>
+                                        </div>
                                     @endif
                                 </div>
                                 <a href="{{ route('lists.show', $project) }}" class="block">
