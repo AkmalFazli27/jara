@@ -17,9 +17,15 @@ class TaskController extends Controller
 
         $validated = $request->validate([
             'title' => ['required', 'string', 'max:255'],
-            'description' => ['nullable', 'string'],
-            'priority' => ['nullable', 'in' => ['low', 'medium', 'high']],
+            'description' => ['nullable', 'string', 'max:2000'],
+            'priority' => ['nullable', 'in:low,medium,high'],
             'deadline' => ['nullable', 'date'],
+        ], [
+            'title.required' => 'Judul tugas wajib diisi.',
+            'title.max' => 'Judul tugas maksimal 255 karakter.',
+            'description.max' => 'Deskripsi tugas maksimal 2000 karakter.',
+            'priority.in' => 'Prioritas yang dipilih tidak valid.',
+            'deadline.date' => 'Format deadline tidak valid.',
         ]);
 
         $list->tasks()->create([
@@ -29,7 +35,7 @@ class TaskController extends Controller
             'deadline' => $validated['deadline'] ?? null,
         ]);
 
-        return back()->with('status', 'Task created.');
+        return back()->with('status', 'Tugas berhasil dibuat.');
     }
 
     public function update(Request $request, Task $task): RedirectResponse
